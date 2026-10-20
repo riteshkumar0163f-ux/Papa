@@ -1,0 +1,24 @@
+LOG ANALYSIS (this run)
+=======================
+WORKED:
+- create_team + Team Code
+- invite + ACCEPT
+- In team (2/2)
+
+FAILED:
+- After member READY ack (field3=2), server sent 0b → member TCP closed
+- Leave removed member from set → invite loop continued
+- Never printed FINAL / LEADER START MATCH (att=0)
+
+WHY NO MATCH START
+Leader START only runs after invite-loop ends with FINAL.
+2/2 was lost when member disconnected after READY, so FINAL never ran with full team.
+
+FIXES
+1) full_once signal on first 2/2 → invite loop exits immediately
+2) FINAL still START if full_once even if member briefly dropped
+3) Member READY only 3x slow (not spam) — spam correlated with 0b after ack
+4) Region rotate disabled (was hopping ID/SG/TH/MY…)
+
+EXPECT
+  ACCEPT → Full team signal → FINAL → LEADER READY → LEADER START MATCH → MATCH FOUND
